@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>AI Business Monitor</title>
+    <style>
+        body { font-family: sans-serif; background: #f4f7f6; padding: 20px; }
+        .card { background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); max-width: 600px; margin: auto; }
+        .status { color: green; font-weight: bold; }
+        .news-item { border-bottom: 1px solid #eee; padding: 10px 0; }
+    </style>
+</head>
+<body>
+    <div class="card">
+        <h2>🚀 AI Insight Engine: Active</h2>
+        <p>Last Run: <span id="last-run">Loading...</span></p>
+        <p>Status: <span class="status">Self-Running</span></p>
+        <hr>
+        <div id="content">
+            <p>Scanning for profitable insights...</p>
+        </div>
+        <button onclick="location.reload()">Refresh Feed</button>
+    </div>
+
+    <script>
+        // Your AI Agent will be configured to "push" data to a JSON file
+        // For now, this is where the business "peeping" happens.
+        fetch('daily_report.json')
+            .then(response => response.json())
+            .then(data => {
+                document.getElementById('last-run').innerText = data.date;
+                let html = '';
+                data.insights.forEach(item => {
+                    html += `<div class="news-item"><strong>${item.title}</strong><p>${item.summary}</p></div>`;
+                });
+                document.getElementById('content').innerHTML = html;
+            });
+    </script>
+</body>
+</html>
