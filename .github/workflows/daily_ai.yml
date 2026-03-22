@@ -1,8 +1,8 @@
 name: Daily AI Insight Engine
 on:
   schedule:
-    - cron: '0 0 * * *' # Runs daily at midnight
-  workflow_dispatch: # Allows you to run it manually
+    - cron: '0 0 * * *'
+  workflow_dispatch:
 
 jobs:
   generate:
@@ -11,28 +11,28 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v2
 
-      - name: Fetch Real AI News from Gemini
+      - name: Fetch News
         env:
           GEMINI_KEY: ${{ secrets.GEMINI_API_KEY }}
         run: |
-          # This tells the AI to find 2 real news stories and format them for your website
+          # 1. Ask the AI for news
           curl -X POST "https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${GEMINI_KEY}" \
           -H 'Content-Type: application/json' \
           -d '{
             "contents": [{
               "parts":[{
-                "text": "Search for 2 trending AI business tool news items from the last 24 hours. Output ONLY a raw JSON object like this: {\"date\": \"'$(date)'\", \"insights\": [{\"title\": \"Short Title\", \"summary\": \"1-sentence summary\"}]}"
+                "text": "Find 2 real AI news items from the last 24 hours. Format the output ONLY as a JSON object like this: {\"date\": \"'$(date)'\", \"insights\": [{\"title\": \"Title\", \"summary\": \"Summary\"}]}"
               }]
             }]
-          }' > response.json
+          }' > raw_response.json
           
-          # This cleans the AI response so the website can read it
-          cat response.json | jq -r '.candidates[0].content.parts[0].text' | sed 's/```json//g' | sed 's/```//g' > daily_report.json
+          # 2. Extract and Clean (This prevents the Red Mark)
+          cat raw_response.json | jq -r '.candidates[0].content.parts[0].text' | sed 's/```json//g' | sed 's/```//g' > daily_report.json
 
-      - name: Save News to Website
+      - name: Save to Site
         run: |
           git config --global user.name "AI-Engine"
           git config --global user.email "action@github.com"
           git add daily_report.json
-          git commit -m "Update website with real daily news"
+          git commit -m "Fixed news update"
           git push
