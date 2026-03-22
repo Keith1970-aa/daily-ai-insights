@@ -1,38 +1,38 @@
 name: Daily AI Insight Engine
 on:
   schedule:
-    - cron: '0 0 * * *' # Runs every 24 hours at midnight UTC
-  workflow_dispatch: # Allows you to run it manually to test
+    - cron: '0 0 * * *' # Runs daily at midnight
+  workflow_dispatch: # Allows you to run it manually
 
 jobs:
-  build:
+  generate:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout code
+      - name: Checkout
         uses: actions/checkout@v2
 
-      - name: Get AI Insights
+      - name: Fetch Real AI News from Gemini
+        env:
+          GEMINI_KEY: ${{ secrets.GEMINI_API_KEY }}
         run: |
-          # This simulates the Agentic AI fetching data
-          # In a live version, you would link your API key here
-          echo '{
-            "date": "'$(date)'",
-            "insights": [
-              {
-                "title": "New AI Automation Trend",
-                "summary": "Small businesses are now using agentic workflows to handle 80% of customer FAQs automatically."
-              },
-              {
-                "title": "Top Tool of the Week",
-                "summary": "A new open-source tool allows you to build landing pages using just voice commands."
-              }
-            ]
-          }' > daily_report.json
+          # This tells the AI to find 2 real news stories and format them for your website
+          curl -X POST "https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${GEMINI_KEY}" \
+          -H 'Content-Type: application/json' \
+          -d '{
+            "contents": [{
+              "parts":[{
+                "text": "Search for 2 trending AI business tool news items from the last 24 hours. Output ONLY a raw JSON object like this: {\"date\": \"'$(date)'\", \"insights\": [{\"title\": \"Short Title\", \"summary\": \"1-sentence summary\"}]}"
+              }]
+            }]
+          }' > response.json
+          
+          # This cleans the AI response so the website can read it
+          cat response.json | jq -r '.candidates[0].content.parts[0].text' | sed 's/```json//g' | sed 's/```//g' > daily_report.json
 
-      - name: Commit and Push
+      - name: Save News to Website
         run: |
           git config --global user.name "AI-Engine"
           git config --global user.email "action@github.com"
           git add daily_report.json
-          git commit -m "Daily AI Update"
+          git commit -m "Update website with real daily news"
           git push
