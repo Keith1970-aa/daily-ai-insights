@@ -1,38 +1,10 @@
 name: Daily AI Insight Engine
 on:
-  schedule:
-    - cron: '0 0 * * *'
   workflow_dispatch:
 
 jobs:
-  generate:
+  test:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout
-        uses: actions/checkout@v2
-
-      - name: Fetch News
-        env:
-          GEMINI_KEY: ${{ secrets.GEMINI_API_KEY }}
-        run: |
-          # 1. Ask the AI for news
-          curl -X POST "https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${GEMINI_KEY}" \
-          -H 'Content-Type: application/json' \
-          -d '{
-            "contents": [{
-              "parts":[{
-                "text": "Find 2 real AI news items from the last 24 hours. Format the output ONLY as a JSON object like this: {\"date\": \"'$(date)'\", \"insights\": [{\"title\": \"Title\", \"summary\": \"Summary\"}]}"
-              }]
-            }]
-          }' > raw_response.json
-          
-          # 2. Extract and Clean (This prevents the Red Mark)
-          cat raw_response.json | jq -r '.candidates[0].content.parts[0].text' | sed 's/```json//g' | sed 's/```//g' > daily_report.json
-
-      - name: Save to Site
-        run: |
-          git config --global user.name "AI-Engine"
-          git config --global user.email "action@github.com"
-          git add daily_report.json
-          git commit -m "Fixed news update"
-          git push
+      - name: Hello World
+        run: echo "The Robot is Awake!"
